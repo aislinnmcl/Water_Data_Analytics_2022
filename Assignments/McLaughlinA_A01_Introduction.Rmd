@@ -61,8 +61,9 @@ eno_discharge <- readNWISdv(siteNumbers = "02096500",
                      endDate = "2021-12-31")
 
 # rename columns
-
-
+eno_discharge <-
+  eno_discharge %>%
+  rename(discharge_cfs = X_00060_00003, approval_code = X_00060_00003_cd)
 
 ```
 
@@ -79,18 +80,33 @@ eno_discharge <- readNWISdv(siteNumbers = "02096500",
 
 ```{r}  
 
+# add columns for cubic meters per second and 30-day rolling mean
+eno_discharge <-
+  eno_discharge %>%
+  mutate(discharge_m3s = discharge_cfs * 0.028316847) %>%
+  mutate(mean_30d = rollmean(discharge_m3s, 30, fill = NA))
 
+# plot eno discharge data
+EnoPlot2 <-
+  ggplot(eno_discharge) +
+  geom_line(aes(x = Date, y = discharge_m3s, color = "Daily Value"), alpha = 0.7) +
+  geom_line(aes(x = Date, y = mean_30d, color = "Rolling Mean")) +
+  labs(x = "Year", y = "Discharge (m^3 per second)") +
+  scale_y_continuous(trans='log10') +
+  scale_color_manual(name = "", values = c("Daily Value" = "goldenrod2", "Rolling Mean" = "steelblue"))
+
+EnoPlot2
 ```
 
 5. In what ways was the second plot a more effective visualization than the first? 
 
-> ANSWER: 
+> ANSWER: The log transformation on the y-axis allows you to view the variation more clearly because the data aren't scrunched up against the x-axis. Also the rolling mean shows a smoother picture of the peaks/troughs in the measurements.
 
 6. What portions of the coding were challenging for you?
 
-> ANSWER: Just refreshing my memory on different commands. I've covered most of this material (incl USGS package) in EDA and coding for my MP.
+> ANSWER: Mostly refreshing my memory on commands - I've covered a decent amount of this material (incl USGS package) in EDA and coding for my MP. It's always a little tricky to get plots to look exactly how I want them (e.g. good colors, legend that shows labels/data I want)
 
 7. Interpret the graph you made. What are the things you notice about within- and across-year variability, as well as the differences between daily values and 30-day rolling mean?
 
-> ANSWER: 
+> ANSWER: There seems to be some seasonality within years - regular points at which the discharge dips and peaks. Across years, the max discharge in m^3/s seems to be increasing as does the min discharge in m^3/s - the annual max daily value seems to generally have increased YoY since 2012 and the annual min daily value seems to have been increasing since 2016. The rolling mean helps to visually emphasize the discharge seasonality and other longer term trends while the daily values highlight the variation in annual max/min daily values.
 
