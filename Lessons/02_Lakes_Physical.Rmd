@@ -22,7 +22,7 @@ What are the physical properties of lakes?
 # Check working directory (should be project file location)
 getwd()
 
-# install.packages("tidyverse")
+# install.packages("tidyverse") - can't knit rmd file if install.packages is uncommented
 # install.packages("lubridate")
 # install.packages("rLakeAnalyzer")
 
@@ -51,7 +51,7 @@ Common steps/checks for data wrangling:
 ```{r}
 # Is the date column perceived as a date by R?
 class(NTLdata$sampledate)
-NTLdata$sampledate <- as.Date(NTLdata$sampledate, format = "%m/%d/%y")
+NTLdata$sampledate <- as.Date(NTLdata$sampledate, format = "%m/%d/%y") # provide format as it exists before change
 class(NTLdata$sampledate)
 # What does this column look like now?
 
@@ -67,7 +67,7 @@ summary(as.factor(NTLdata$lakename))
 
 # Let's choose the two lakes with the most data
 NTLdata_PeterPaul <- NTLdata %>%
-  filter(lakename %in% c("Paul Lake", "Peter Lake"))
+  filter(lakename %in% c("Paul Lake", "Peter Lake")) # %in% is like "includes"
 
 # What is another way to use the filter command to get to the same result?
 NTLdata_PeterPaul <- NTLdata %>%
@@ -90,7 +90,7 @@ unique(Pauldata$depth)
 unique(Peterdata$depth)
 # Why didn't we use the "summary" function here?
 
-# QA the one data point at 20 m depth. 
+# QA the one data point at 20 m depth (aka remove the point over 20m). 
 Pauldata <- Pauldata %>%
   filter(depth < 20)
 
