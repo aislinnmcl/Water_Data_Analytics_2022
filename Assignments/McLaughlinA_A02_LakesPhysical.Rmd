@@ -70,16 +70,25 @@ theme_set(mytheme)
 
 What seasonal trends do you observe, and do these manifest differently in each lake?
 
+ANSWER: For temperature, the stratification of temperatures increases as we approach summer with a greater difference between temperatures in the epilimnion and hypolimnion. Most lakes follow this general trend although some (like Tuesday Lake) have warmer temps in the summer only a couple feet below the surface while other lakes (like Paul Lake) experience warmer temperatures at a greater depth, closer to 5 feet.
+
 ```{r}
 
-ggplot(subset(NTL_data, year4 == 1993), 
-       aes(x = temperature_C, y = dissolvedOxygen, color = daynum)) +
+temp_profile <- ggplot(subset(NTL_data, year4 == 1993), aes(x = temperature_C, y = depth, color = daynum)) +
   geom_point(alpha = 0.5) +
   scale_y_reverse() +
   scale_color_viridis_c() +
-  labs(x = expression("Temperature "(degree*C)), y = "Depth (m)", color = "DOY")
+  labs(x = expression("Temperature "(degree*C)), y = "Depth (m)", color = "DOY") +
+  facet_wrap(vars(lakename))
+temp_profile
 
-
+DO_profile <- ggplot(subset(NTL_data, year4 == 1993), aes(x = dissolvedOxygen, y = depth, color = daynum)) +
+  geom_point(alpha = 0.5) +
+  scale_y_reverse() +
+  scale_color_viridis_c() +
+  labs(x = "Dissolved Oxygen (mg/L) ", y = "Depth (m)", color = "DOY") +
+  facet_wrap(vars(lakename))
+DO_profile
 ```
 
 6. Create a new dataset that calculates thermocline depths for all lakes on all dates (hint: you will need group by lake, year, month, DOY, and sample date).
@@ -88,7 +97,31 @@ ggplot(subset(NTL_data, year4 == 1993),
 
 Do all the lakes have a similar seasonal progression of thermocline deepening? Which lakes have the deepest thermoclines, and how does this relate to their maximum depth? 
 
+ANSWER: Generally the lakes have a similar seasonal progression of thermocline deepening throughout the year, although there is some variation in the earlier months of April, May and June. Crampton, Paul and Peter Lakes have the deepest thermoclines - they are also the lakes with the greatest maximum depth.
+
 ```{r}
 
+lakes_thermo <- NTL_data %>%
+  group_by(lakename, year4, Month, daynum, sampledate) %>%
+  # calculate thermoclines based on temperature profiles. 
+  # seasonal = FALSE calculates the thermocline as the maximum density gradient
+  # seasonal = TRUE calculates the thermocline as the deepest density gradient
+  summarise(thermocline = thermo.depth(wtr = temperature_C, depths = depth, seasonal = FALSE)) %>%
+  # remove all thermoclines within 1 m of the surface. these can represent transient stratification.
+  filter(thermocline > 1)
+
+plot_thermo <- ggplot(lakes_thermo, aes(x = daynum, y = thermocline, color = lakename)) +
+  geom_point(alpha = 0.5) +
+  scale_color_brewer(palette = "Paired")
+plot_thermo
+
+plot_thermo_box <- ggplot(lakes_thermo, aes(x = lakename, y = thermocline)) +
+  geom_boxplot(aes(fill = factor(Month))) +
+  labs(x = "Lake Name", y = "Thermocline Depth (m)", fill = "Month")
+plot_thermo_box
+
+max_depth <- NTL_data %>%
+  group_by(lakename) %>%
+  summarise(max_depth = max(depth))
 ```
 
