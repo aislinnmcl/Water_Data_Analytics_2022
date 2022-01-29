@@ -137,6 +137,12 @@ ggplot(subset(Pauldata, year4 == 1993),
 
 # Now, make a plot as above but with dissolved oxygen saturation instead of temperature.
 
+ggplot(subset(Pauldata, year4 == 1993), 
+       aes(x = dissolvedOxygen, y = depth, color = daynum)) +
+  geom_point(alpha = 0.5) +
+  scale_y_reverse() +
+  scale_color_viridis_c() +
+  labs(x = expression("Dissolved Oxygen (mg/L)"), y = "Depth (m)", color = "DOY") 
 
 ```
 
@@ -165,7 +171,8 @@ ggplot(Pauldata_thermo, aes(x = daynum, y = thermocline)) +
 ```
 
 How does thermocline depth change over the course of the year? When do we observe the most variability in thermocline depth?
-<add notes here>
+
+Thermocline deepens as year goes on. Most variability is at the beginning of the year.
 
 
 ### Climate change
@@ -192,7 +199,9 @@ Let's explore how these changes might manifest in Paul Lake.
 ```{r}
 ggplot(Pauldata_thermo, aes(x = daynum, y = thermocline, color = year4)) +
   geom_point() +
-  scale_color_viridis_c()
+  scale_color_viridis_c() +
+  labs(x = "Day", y = "Thermocline Depth (m)") + 
+  theme(legend.position = "top")
 # exercise: put the legend on top and relabel the aesthetics
 
 ggplot(subset(Pauldata, depth == 1),

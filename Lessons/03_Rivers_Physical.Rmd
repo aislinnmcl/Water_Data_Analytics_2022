@@ -35,7 +35,7 @@ One of the most important physical characteristics of a stream or river is **dis
 
 ```{r}
 EnoDischarge.ratingcurve <- readNWISdv(siteNumbers = "02096500",
-                     parameterCd = c("00060", "00065"),
+                     parameterCd = c("00060", "00065"), # 00060 is discharge, 00065 is gage height
                      startDate = "2012-01-01",
                      endDate = "2021-01-01")
 
@@ -73,7 +73,7 @@ NehalemSummary <- whatNWISdata(siteNumbers = "14299800")
 
 What data are available from the sites? Pay particular attention to the parameter codes and statistic codes.
 
->
+> 
 
 What is the period of record for mean daily discharge at each of these sites?
 
@@ -81,9 +81,9 @@ What is the period of record for mean daily discharge at each of these sites?
 
 > Verde River: 
 
-> Bitterroot River: 
+> Bitterroot River: 1937 - 2022
 
-> Sauk River: 
+> Sauk River: 1909 - 2022
 
 > Nehalem River: 
 
@@ -188,7 +188,7 @@ NehalemPlot
 
 CombinedPlot <- 
   plot_grid(EnoPlot, VerdePlot, BitterrootPlot, SaukPlot, NehalemPlot, 
-            ncol = 1)
+            ncol = 1, rel_heights = c(1, 1, 1, 1, 1.2), align = "hv")
 CombinedPlot
 
 # add relative heights and align axes
