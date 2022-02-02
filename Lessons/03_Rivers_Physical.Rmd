@@ -220,8 +220,8 @@ BitterrootDischarge.Historical <- mutate(BitterrootDischarge.Historical,
 
 BitterrootDischarge.Pattern <- BitterrootDischarge.Historical %>%
   group_by(DOY) %>%
-  summarise(Median.Discharge = median(Discharge), 
-            p95.Discharge = quantile(Discharge, 0.95, na.rm = TRUE),
+  summarise(Median.Discharge = median(Discharge, na.rm = TRUE), 
+            p95.Discharge = quantile(Discharge, 0.95, na.rm = TRUE), #need to specify to remove NAs
             p5.Discharge = quantile(Discharge, 0.05, na.rm = TRUE))
 
 ggplot(BitterrootDischarge.Pattern, aes(x = DOY)) +

@@ -26,7 +26,7 @@ getwd()
 library(tidyverse)
 library(dataRetrieval)
 library(lubridate)
-library(lfstat)
+library(lfstat) # low-flow statistics
 
 
 theme_set(theme_classic())
@@ -72,15 +72,15 @@ We can then compute recurrence intervals based on the first 30 years of data.
 ```{r}  
 EnoDischarge <- EnoDischarge %>%
   mutate(Year = year(Date), 
-         WaterYear = water_year(Date, origin = "usgs")) %>%
-  filter(WaterYear != "1963")
+         WaterYear = water_year(Date, origin = "usgs")) %>% #water_year fxn from lfstat pkg
+  filter(WaterYear != "1963") #only have 30 days of data for this year, so we're removing it
 
 # Water Year is a factor. We want to re-classify as numeric.
-EnoDischarge$WaterYear <- as.numeric(as.character(EnoDischarge$WaterYear))
+EnoDischarge$WaterYear <- as.numeric(as.character(EnoDischarge$WaterYear)) #have to tell R it's a character first
 
 EnoRecurrence <- 
   EnoDischarge %>%
-  filter(WaterYear < 1994) %>%
+  filter(WaterYear < 1994) %>% #picked 30 years randomly, just for example
   group_by(WaterYear) %>%
   summarise(PeakDischarge = max(Discharge)) %>% 
   mutate(Rank = rank(-PeakDischarge), 
@@ -95,13 +95,15 @@ ggplot(EnoRecurrence, aes(x = WaterYear, y = PeakDischarge)) +
 
 Let's display and model the relationship between peak annual disharge and recurrence interval. We can use the statistical model to compute discharge for recurrence intervals that occur above the 30-year mark.
 ```{r}
+# can calc recurrence intervals on as little as 10 yrs of data
+# stationarity - need to use more years of data, but if we're seeing rapid changes in hydrology, using historical data is not that helpful
 ggplot(EnoRecurrence, aes(x = RecurrenceInterval, y = PeakDischarge)) +
   geom_point() +
   scale_x_log10() +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm") # color = "black", se = FALSE - makes it look a little nicer
 
 Eno.RImodel <- lm(data = EnoRecurrence, PeakDischarge ~ log10(RecurrenceInterval))
-summary(Eno.RImodel)
+summary(Eno.RImodel) #R2 - over 90% of our variability is explained by this recurrence interval
 
 #What is the discharge for a 100-year flood in this system? a 500-year flood?
 Eno.RImodel$coefficients[1] + Eno.RImodel$coefficients[2]*log10(100)
@@ -112,7 +114,7 @@ What if we were to build a recurrence interval model for the most recent 30 year
 ```{r}
 EnoRecurrence.Late <- 
   EnoDischarge %>%
-  filter(WaterYear >= 1992) %>%
+  filter(WaterYear >= 1992) %>% #choosing the most recent 30 years
   group_by(WaterYear) %>%
   summarise(PeakDischarge = max(Discharge)) %>% 
   mutate(Rank = rank(-PeakDischarge), 
@@ -163,6 +165,7 @@ ggplot(SaladoDischarge, aes(x = Date, y = Discharge)) +
   geom_line() +
   labs(x = "Year", y = "Discharge (cfs)")
 
+# urbanization + channelization of flow leads to high peaks that disappear faster, less urban areas have shorter, broader peaks
 
 ```
 
