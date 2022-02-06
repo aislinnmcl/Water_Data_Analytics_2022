@@ -41,6 +41,7 @@ Target due date: 2022-02-08
 ```{r}
 
 
+
 ```
 
 7. What seasonal patterns do you see? What does this tell you about precipitation patterns and climate in the watershed?
