@@ -166,4 +166,4 @@ Nehalem_combo
 
 7. How do these rivers differ in their discharge and baseflow, both within and across years? How would you attribute these patterns to the climatic conditions in these locations?
 
-> 
+> The Bitterroot River receives a higher proportion of its discharge from baseflow which is illustrated in our plot of discharge + baseflow over time and our plot of baseflow proportion. Given the larger difference between discharge and baseflow for the Nehalem, I assume that much of the river's discharge comes from precipitation. Both rivers show seasonally lower baseflows in the summer months.
