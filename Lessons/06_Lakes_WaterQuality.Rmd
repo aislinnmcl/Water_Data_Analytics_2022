@@ -14,7 +14,12 @@ editor_options:
 3. Analyze spatial and temporal patterns of water quality across the northeast U.S.
 
 ## Opening Discussion
-What are the major water quality impairments experienced in lakes?  
+What are the major water quality impairments experienced in lakes?
+*nutrient pollution - nitrogen/phosphorus, causes eutrophication / algal blooms
+*sediment loading - covers up habitat
+*thermal pollution - affects wildlife
+*other contaminants - heavy metals, pesticides
+*pathogens, bacteria, fungi
 
 ## Session Set Up
 
@@ -27,7 +32,7 @@ library(lubridate)
 library(LAGOSNE)
 
 theme_set(theme_classic())
-options(scipen = 100)
+options(scipen = 4)
 
 lagosne_get(dest_folder = LAGOSNE:::lagos_path(), overwrite = TRUE)
 
@@ -45,11 +50,11 @@ https://cont-limno.github.io/LAGOSNE/articles/lagosne_structure.html
 
 ```{r}
 # Load LAGOSNE data into R session
-LAGOSdata <- lagosne_load()
+#LAGOSdata <- lagosne_load()
 names(LAGOSdata)
 
 # If the package installation and data download has not worked, use this code: 
-# load(file = "./Data/Raw/LAGOSdata.rda")
+load(file = "./Data/Raw/LAGOSdata.rda")
 
 # Exploring the data types that are available
 LAGOSlocus <- LAGOSdata$locus
@@ -71,6 +76,8 @@ For example, let's find out how many lakes are in each state. Note that LAGOSloc
 ```{r}
 # Join data frames
 LAGOSlocations <- left_join(LAGOSlocus, LAGOSstate, by = "state_zoneid")
+# if columns have same data but are name different things, can do:
+# LAGOSlocations <- left_join(LAGOSlocus, LAGOSstate, by = c("state_zoneid = colname2"))
 
 ggplot(LAGOSlocations, aes(x = state)) + 
   geom_bar(stat = "count")
@@ -142,7 +149,7 @@ ggplot(LAGOStrophic, aes(x = as.factor(samplemonth), y = tp)) +
 
 What do you notice about the seasonality of these variables? If we were to characterize a lake based on the value of a given variable, how might seasonality affect our interpretations?
 
->
+> Lakes seem to have lower visibility in summer (secchi depth is lower), which makes sense because we have more chlorophyll
 
 ### Calculating trophic state index
 
