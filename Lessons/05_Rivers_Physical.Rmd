@@ -203,3 +203,11 @@ plot.CoolidgeBaseflow
 
 ```
 
+Some legend color stuff
+```{r}
+
+ggplot(BitterrootDischarge, aes(x = Date)) +
+  geom_line(aes(y = Discharge, color = "total discharge")) +
+  scale_color_manual(values = c("total discharge" = "gray"))
+
+```
