@@ -1,6 +1,6 @@
 ---
 title: "Assignment 5: Water Quality in Lakes"
-author: "Student Name"
+author: "Aislinn McLaughlin"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -29,6 +29,28 @@ Target due date: 2022-02-22
 
 ```{r setup}
 
+getwd()
+setwd("/Users/Aislinn/Documents/GitHub/Water_Data_Analytics_2022/")
+
+library(tidyverse)
+library(lubridate)
+library(LAGOSNE)
+
+mytheme <-
+  theme_gray(base_size = 12) +
+  theme(legend.background = element_rect(fill = "gray"), legend.position = "bottom",
+        plot.title = element_text(face = "bold", size = 14, color = "black", hjust = 0.5),
+        plot.subtitle = element_text(size = 10, color = "gray", hjust = 0.5))
+
+theme_set(mytheme)
+
+# still getting an error! using workaround
+# lagosne_get(dest_folder = LAGOSNE:::lagos_path(), overwrite = TRUE)
+
+load(file = "./Data/Raw/LAGOSdata.rda")
+lagos.tsi <- read.csv("./Data/Processed/LAGOStrophic.csv")
+
+
 ```
 
 ## Trophic State Index
@@ -37,12 +59,44 @@ Target due date: 2022-02-22
 
 ```{r}
 
+lagos.tsi <-
+  lagos.tsi %>%
+  mutate(trophic.class.secchi = case_when(TSI.secchi < 40 ~ "Oligotrophic",
+                                   TSI.secchi >= 40 & TSI.secchi < 50 ~ "Mesotrophic",
+                                   TSI.secchi >= 50 & TSI.secchi< 70 ~ "Eutrophic",
+                                   TSI.secchi >= 70 ~ "Hypereutrophic"),
+         trophic.class.tp = case_when(TSI.tp < 40 ~ "Oligotrophic",
+                                   TSI.tp >= 40 & TSI.tp < 50 ~ "Mesotrophic",
+                                   TSI.tp >= 50 & TSI.tp< 70 ~ "Eutrophic",
+                                   TSI.tp >= 70 ~ "Hypereutrophic")
+)
+
+lagos.tsi$trophic.class <- factor(lagos.tsi$trophic.class, 
+                                         levels = c("Oligotrophic", "Mesotrophic", "Eutrophic", "Hypereutrophic"))
+
+lagos.tsi$trophic.class.secchi <- factor(lagos.tsi$trophic.class.secchi, 
+                                         levels = c("Oligotrophic", "Mesotrophic", "Eutrophic", "Hypereutrophic"))
+
+lagos.tsi$trophic.class.tp <- factor(lagos.tsi$trophic.class.tp, 
+                                         levels = c("Oligotrophic", "Mesotrophic", "Eutrophic", "Hypereutrophic"))
+
 ```
 
 
 4. How many observations fall into the four trophic state categories for the three metrics (trophic.class, trophic.class.secchi, trophic.class.tp)? Hint: `n()` function.
 
 ```{r}
+lagos.tsi %>%
+  group_by(trophic.class) %>%
+  summarise(count = n())
+
+lagos.tsi %>%
+  group_by(trophic.class.secchi) %>%
+  summarise(count = n())
+
+lagos.tsi %>%
+  group_by(trophic.class.tp) %>%
+  summarise(count = n())
 
 ```
 
@@ -50,11 +104,26 @@ Target due date: 2022-02-22
 
 ```{r}
 
+lagos.tsi %>%
+  group_by(trophic.class) %>%
+  summarise(count = n()) %>%
+  mutate(freq = count / sum(count))
+
+lagos.tsi %>%
+  group_by(trophic.class.secchi) %>%
+  summarise(count = n()) %>%
+  mutate(freq = count / sum(count))
+
+lagos.tsi %>%
+  group_by(trophic.class.tp) %>%
+  summarise(count = n()) %>%
+  mutate(freq = count / sum(count))
+
 ```
 
 Which of these metrics is most conservative in its designation of eutrophic conditions? Why might this be?
 
-> 
+> Eutrophic describes a lake that has high levels of productivity. Trophic.class.tp count is most conservative in its designation of eutrophic conditions because it does not measure primary productivity (phytoplankton) but rather the nutrient source for primary producers.
 
 
 ## Nutrient Concentrations
@@ -63,37 +132,83 @@ Which of these metrics is most conservative in its designation of eutrophic cond
 
 ```{r}
 
+LAGOSlocus <- LAGOSdata$locus
+LAGOSstate <- LAGOSdata$state
+LAGOSnutrient <- LAGOSdata$epi_nutr
+
+LAGOSlocus$lagoslakeid <- as.factor(LAGOSlocus$lagoslakeid)
+LAGOSnutrient$lagoslakeid <- as.factor(LAGOSnutrient$lagoslakeid)
+
+LAGOSlocations <- left_join(LAGOSlocus, LAGOSstate, by = "state_zoneid")
+
+LAGOSNandP <- LAGOSnutrient %>%
+  left_join(., LAGOSlocations, by = "lagoslakeid") %>%
+  select(lagoslakeid, sampledate, tn, tp, state, state_name) %>%
+  mutate(sampleyear = year(sampledate), 
+         samplemonth = month(sampledate)) %>%
+  filter(samplemonth >= 5 & samplemonth <=9) %>%
+  drop_na(tn, tp, state)
+
 ```
 
 7. Create two violin plots comparing TN and TP concentrations across states. Include a 50th percentile line inside the violins. Create a logged y axis and relabel axes.
 ```{r}
 
+tn_violin <- ggplot(LAGOSNandP, aes(x = state, y = tn)) +
+  geom_violin(draw_quantiles = 0.5) +
+  scale_y_log10() +
+  labs(x = "State", y = expression("TN ("*mu*"g/L)"))
+tn_violin
+
+tp_violin <- ggplot(LAGOSNandP, aes(x = state, y = tp)) +
+  geom_violin(draw_quantiles = 0.5) +
+  scale_y_log10() +
+  labs(x = "State", y = expression("TP("*mu*"g/L)"))
+tp_violin
+
 ```
 
 Which states have the highest and lowest median concentrations?
 
-> TN:
+> TN: Highest - IA and IN, lowest = VT/NH
 
-> TP:
+> TP: Highest - IL and IA, lowest - VT and NH
 
 Which states have the largest and smallest concentration ranges?
 
-> TN: 
+> TN: Largest - CT and RI, smallest - VT/NH
 
-> TP: 
+> TP: Largest - CT and MN/MO, smallest - VT/NH
 
 8. Create two jitter plots comparing TN and TP concentrations across states, with samplemonth as the color. Choose a color palette other than the ggplot default.
 
 ```{r}
 
+tn_jitter <-
+  ggplot(LAGOSNandP, aes(x = state, y = tn, color = samplemonth)) +
+  geom_jitter(alpha = 0.3) +
+  scale_color_viridis_c() + 
+  labs(x = "State", y = expression("TN ("*mu*"g/L)"), color = "Month") + 
+  scale_y_log10()
+tn_jitter
+
+tp_jitter <-
+  ggplot(LAGOSNandP, aes(x = state, y = tp, color = samplemonth)) +
+  geom_jitter(alpha = 0.3) +
+  scale_color_viridis_c(option = "inferno") +
+  labs(x = "State", y = expression("TP ("*mu*"g/L)"), color = "Month") +
+  scale_y_log10()
+tp_jitter
+
 ```
 
 Which states have the most samples? How might this have impacted total ranges from #7?
 
-> TN:
+> TN: IA/MO
 
-> TP: 
+> TP: IA/MO
 
+> States with the most samples are likely to also be states with the largest total ranges because you have more opportunities to collect different data points.
 
 
 
