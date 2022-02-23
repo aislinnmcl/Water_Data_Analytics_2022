@@ -34,7 +34,7 @@ library(LAGOSNE)
 theme_set(theme_classic())
 options(scipen = 4)
 
-lagosne_get(dest_folder = LAGOSNE:::lagos_path(), overwrite = TRUE)
+# lagosne_get(dest_folder = LAGOSNE:::lagos_path(), overwrite = TRUE)
 
 ```
 
@@ -189,6 +189,8 @@ ggplot(LAGOStrophic, aes(x = TSI.chl, y = TSI.secchi, color = samplemonth)) +
   geom_abline(slope = 1, intercept = 0) +
   scale_color_viridis_c(option = "magma", end = 0.8, direction = -1) +
   theme(legend.position = "top")
+# dots below line where TSI.chl is higher than TSI.secchi is when reduction in clarity is mostly from phytoplankton/algae
+# dots above line where TSI.secchi is higher than TSI.chl is when there is more turbidity so reduction in clarity is not from phytoplankton. problematic because you're assigning something as eutrophic when there isn't much primary production associated with it
 
 ggplot(LAGOStrophic, aes(x = TSI.chl, y = TSI.tp, color = samplemonth)) +
   geom_point(alpha = 0.1) + 
@@ -197,6 +199,9 @@ ggplot(LAGOStrophic, aes(x = TSI.chl, y = TSI.tp, color = samplemonth)) +
   geom_abline(slope = 1, intercept = 0) +
   scale_color_viridis_c(option = "magma", end = 0.8, direction = -1) +
   theme(legend.position = "top")
+# dots above line show situation where something other than phosphorus is limiting primary production, maybe nitrogen
+# dots below line show any increase in total phosphorus is very tightly correlated with increase in chlorophyll
+
 
 ```
 
@@ -216,6 +221,8 @@ ggplot(LAGOStrophic, aes(x = state, y = TSI.chl)) +
   geom_hline(yintercept = 40, lty = 2, color = "gray") +
   geom_hline(yintercept = 50, lty = 2, color = "gray") +
   geom_hline(yintercept = 70, lty = 2, color = "gray")
+  #geom_rect(aes(xmin = 0, ymin = 0, xmax = 18, ymax = 40))
+# can use geom_rect if you want to fill in tiers eutrophic mesotrophic etc.
 
 ggplot(LAGOStrophic, aes(x = state, fill = trophic.class)) +
   geom_bar(stat = "count", position = position_dodge(preserve = "single")) +
@@ -227,3 +234,5 @@ ggplot(LAGOStrophic, aes(x = state, fill = trophic.class)) +
 
 ## Closing Discussion
 What factors might you expect to influence trophic state in a given lake? What are some variables in the LAGOSNE database that could help you test your hypothesis?
+
+> 

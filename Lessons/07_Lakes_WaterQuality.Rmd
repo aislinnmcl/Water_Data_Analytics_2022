@@ -35,11 +35,11 @@ options(scipen = 4)
 
 ```{r}
 # Load LAGOSNE data into R session
-LAGOSdata <- lagosne_load()
+#LAGOSdata <- lagosne_load()
 names(LAGOSdata)
 
 # If the package installation and data download has not worked, use this code: 
-# load(file = "./Data/Raw/LAGOSdata.rda")
+load(file = "./Data/Raw/LAGOSdata.rda")
 
 
 # Additional help resources for the LAGOS database: 
@@ -76,7 +76,8 @@ LAGOSjoined <- LAGOSnutrient %>%
   left_join(., LAGOSgeo) %>%
   left_join(., LAGOSlocus) %>%
   left_join(., LAGOSlulc) %>%
-  left_join(., LAGOSlimno)
+  left_join(., LAGOSlimno) %>%
+  drop_na(state)
 
 ggplot(LAGOSjoined, aes(x = tp, y = chla)) +
   geom_point(alpha = 0.1) +
@@ -93,6 +94,8 @@ ggplot(LAGOSjoined, aes(x = tn, y = chla)) +
   scale_y_log10() +
   scale_x_log10() +
   labs(x = expression("TN ("*mu*"g/L)"), y = expression("Chl a ("*mu*"g/L"))
+
+# if we don't see a 1:1 relationship between P and chlorophyll, could be an example of something else limiting chlorophyll like N
 
 ```
 
@@ -118,6 +121,22 @@ Exercise:
 ```{r}
 
 
+LAGOSMN <-
+  LAGOSjoined %>%
+  left_join(., LAGOSdata$hu4) %>%
+  select(lagoslakeid, sampledate, state_name, hu4, chla, tn, tp) %>%
+  filter(state_name == "Minnesota" & year(sampledate) >= 1990 & month(sampledate) >= 6 & month(sampledate) <= 9) %>%
+  filter(hu4 == "0401" | hu4 == "0701" | hu4 == "0702" | hu4 == "0703" | hu4 == "0704" | hu4 == "0902")
+
+ggplot(LAGOSMN, aes(x = chla, y = tp)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE) +
+  facet_wrap(vars(hu4)) +
+  scale_y_log10() +
+  scale_x_log10()
+
+model <- lm(data = LAGOSMN, log10(chla) ~ log10(tp) * hu4)
+summary(model)
 ```
 
 ## Covariates
