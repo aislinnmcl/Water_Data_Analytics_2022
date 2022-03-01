@@ -32,6 +32,16 @@ Target due date: 2022-03-01
 
 ```{r setup}
 
+getwd()
+
+library(tidyverse)
+library(lubridate)
+library(dataRetrieval)
+
+theme <- theme_classic()
+theme_set(theme)
+
+
 NCdata <- readWQPdata(statecode = "North Carolina", 
                       siteType = "Lake, Reservoir, Impoundment", 
                       sampleMedia = c("Water", "water"), 
@@ -74,6 +84,17 @@ ActivityConductingOrganizationText, MonitoringLocationIdentifier, Depth, ResultM
 
   
 ```{r}
+
+# ActivityStartDate is already in date format
+
+NCdata.filtered <-
+  NCdata %>%
+  select(OrganizationIdentifier, OrganizationFormalName, ActivityStartDate, ActivityConductingOrganizationText, MonitoringLocationIdentifier, ActivityDepthHeightMeasure.MeasureValue, ResultMeasureValue, CharacteristicName) %>%
+  group_by(OrganizationIdentifier, OrganizationFormalName, ActivityStartDate, ActivityConductingOrganizationText, MonitoringLocationIdentifier, ActivityDepthHeightMeasure.MeasureValue, CharacteristicName) %>%
+  summarise(ResultMeasureValue.mean = mean(ResultMeasureValue)) %>%
+  pivot_wider(names_from = CharacteristicName, values_from = ResultMeasureValue.mean) %>%
+  mutate(Month = month(ActivityStartDate)) %>%
+  filter(Month %in% c(5:10) & ActivityDepthHeightMeasure.MeasureValue <= 1)
 
 # Look into what forms and units phosphorus and chlorophyll have. 
 # Note that chlorophyll is always suspended, so the form isn't crucial.
