@@ -87,15 +87,6 @@ ActivityConductingOrganizationText, MonitoringLocationIdentifier, Depth, ResultM
 
 # ActivityStartDate is already in date format
 
-NCdata.filtered <-
-  NCdata %>%
-  select(OrganizationIdentifier, OrganizationFormalName, ActivityStartDate, ActivityConductingOrganizationText, MonitoringLocationIdentifier, ActivityDepthHeightMeasure.MeasureValue, ResultMeasureValue, CharacteristicName) %>%
-  group_by(OrganizationIdentifier, OrganizationFormalName, ActivityStartDate, ActivityConductingOrganizationText, MonitoringLocationIdentifier, ActivityDepthHeightMeasure.MeasureValue, CharacteristicName) %>%
-  summarise(ResultMeasureValue.mean = mean(ResultMeasureValue)) %>%
-  pivot_wider(names_from = CharacteristicName, values_from = ResultMeasureValue.mean) %>%
-  mutate(Month = month(ActivityStartDate)) %>%
-  filter(Month %in% c(5:10) & ActivityDepthHeightMeasure.MeasureValue <= 1)
-
 # Look into what forms and units phosphorus and chlorophyll have. 
 # Note that chlorophyll is always suspended, so the form isn't crucial.
 # Note that Phosphorus is in dissolved and total forms. We are interested in total.
@@ -129,8 +120,26 @@ NCdata_processed <- NCdata %>%
   drop_na(Variable, ResultMeasureValue, Depth_m)
   
 
+NCdata_processed <-
+  NCdata_processed %>%
+  select(OrganizationIdentifier, OrganizationFormalName, ActivityStartDate, ActivityConductingOrganizationText, MonitoringLocationIdentifier, Depth_m, ResultMeasureValue, Variable) %>%
+  group_by(OrganizationIdentifier, OrganizationFormalName, ActivityStartDate, ActivityConductingOrganizationText, MonitoringLocationIdentifier, Depth_m, Variable) %>%
+  summarise(ResultMeasureValue.mean = mean(ResultMeasureValue)) %>%
+  pivot_wider(names_from = Variable, values_from = ResultMeasureValue.mean) %>%
+  mutate(Month = month(ActivityStartDate)) %>%
+  filter(Month %in% c(5:10) & Depth_m <= 1)
+
+
+ggplot(NCdata_processed, aes(x = TP_mgL, y = Chla_ugL)) +
+  geom_point() + 
+  geom_smooth(method = lm, color = "blue") + 
+  scale_y_log10() +
+  scale_x_log10() +
+  labs(title = "Stressor-Response Relationship", x = "TP (mg/L)", y = "Chl a (µg/L)")
+
+
 ```
   
 6. How might you expect this stressor-response relationship to change (or not) across the Mountains, Piedmont, and Coastal Plain regions of the state? How might you anticipate natural lakes might behave differently than reservoirs?
 
-> 
+> I don't know that I would expect this relationship to change across Carolina regions... it seems that while the levels of phosphorus might be higher or lower in some regions, chlorophyll's response would be the same. I think as we saw in class, if another limiting nutrient (e.g. nitrogen) were present, we might see some unexpected trends like a lower amount of chlorophyll than expected from the measured phosphorus. I might expect reservoirs to have higher amounts of chlorophyll a and phosphorus because they are likely to be located in closer proximity to sources of nutrient pollution.
