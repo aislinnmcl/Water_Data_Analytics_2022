@@ -148,7 +148,7 @@ LAGOScovariates <- LAGOSjoined %>%
   mutate(percentdeveloped = buffer500m_nlcd2011_pct_22 + buffer500m_nlcd2011_pct_23 + buffer500m_nlcd2011_pct_24,
          percentforest = buffer500m_nlcd2011_pct_41 + buffer500m_nlcd2011_ha_42 + buffer500m_nlcd2011_ha_43,
          percentrowcrops = buffer500m_nlcd2011_pct_82) %>%
-  select(chla, tn, tp, doc, secchi,
+  select(chla, tn, tp, doc, secchi, #dissolved organic 
          maxdepth,lake_area_ha, buffer500m_slope_mean,
          percentdeveloped, percentforest, percentrowcrops)
 
@@ -163,3 +163,6 @@ corrplot(LAGOScorr, type = "upper", diag = FALSE, tl.cex = 0.8, tl.col = "black"
 
 ```
 
+> Positive correlation between lake area + percent forest, slope + percent forest (ppl less likely to build houses/develop steeper sloped areas), max depth + lake area. Negative correlation is 
+
+> Putting multiple things in a model at once can be an issue if there is a lot of covariance between predictor variables. Might want to use a scheme to filter down predictor variables into subset. Simple approaches are AIC (step function that builds model up from 0 predictor variables to optimal amount, or down), some parametric linear regressions (e.g. lasso), machine learning (e.g. random forest)

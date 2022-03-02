@@ -94,7 +94,7 @@ NeuseWQ_processed <- NeuseWQ %>%
 
 NeuseFlow_processed <- NeuseFlow %>%
   select(ActivityStartDate = Date, Flow_cfs = X_00060_00003) %>%
-  filter(ActivityStartDate >= min(NeuseWQ_processed$ActivityStartDate) & 
+  filter(ActivityStartDate >= min(NeuseWQ_processed$ActivityStartDate) & # if joining datasets, makes sense to limit so that they are the same size
            ActivityStartDate <= max(NeuseWQ_processed$ActivityStartDate))
 
 NeuseWQFlow_processed <- NeuseWQ_processed %>%
@@ -146,7 +146,7 @@ What is the relationship between flow and the water quality indicators?
 
 ggplot(NeuseFlow_summary, aes(x = DOY)) +
   geom_line(aes(y = median_Flow_cfs)) +
-  geom_ribbon(aes(ymin = p25_Flow_cfs, ymax = p75_Flow_cfs), fill = "gray", alpha = 0.2) +
+  geom_ribbon(aes(ymin = p25_Flow_cfs, ymax = p75_Flow_cfs), fill = "black", alpha = 0.2) +
   #geom_point(data = NeuseWQFlow_processed, aes(y = FecalColiform_cfu.100mL)) +
   #geom_point(data = NeuseWQFlow_processed, aes(y = SpC_uS.cm)) +
   scale_y_log10() +
@@ -182,7 +182,20 @@ Exercise:
 3. How do fecal coliform and specific conductivity vary as a function of hydrologic condition?
 
 ```{r}
+# Matt Ross, look up on RShiny apps for precip + rainfall
 
+# boxplot 1
+coliform.boxplot <-
+  ggplot(NeuseWQFlow_processed, aes(x = HydrologicCondition, y = FecalColiform_cfu.100mL)) +
+  geom_boxplot()
+print(coliform.boxplot)
+
+# boxplot 2
+
+conductivity.boxplot <-
+  ggplot(NeuseWQFlow_processed, aes(x = HydrologicCondition, y = SpC_uS.cm)) + 
+  geom_boxplot()
+conductivity.boxplot
 
 ```
 
