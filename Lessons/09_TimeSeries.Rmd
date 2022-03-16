@@ -67,18 +67,22 @@ names(NeuseFlow)[4:5] <- c("Discharge", "Approval.Code")
 # Plot discharge over time
 ggplot(NeuseFlow, aes(x = Date, y = Discharge)) +
   geom_line() +
-  labs(x = "", y = "Discharge (cfs)")
+  labs(x = "", y = "Discharge (cfs)") + 
+  scale_y_log10() +
+  geom_smooth(method = lm)
 
+model <- lm(data=NeuseFlow, Discharge ~ Date)
+summary(model)
 
 ```
 
 How would you characterize the time series of discharge and conductivity at this location? Do you see a linear trend over time? What factors might you need to take into account to be able to detect a trend or forecast future conditions?
 
->
+> Seasonality, climate change, any events like effluent release or dam removal that may have caused the big spikes in discharge. Linear trend analysis is not particularly useful for this dataset
 
 Are there situations where it would be appropriate to use a linear regression to model a time series? If so, what is an example?
 
->
+> Focusing on something that is not changing as quickly (e.g. soil chemistry). Might also do linear trend as a rough first pass / exploratory technique. Could be more useful for annual data rather than daily data.
 
 
 ## Decomposing a time series dataset
@@ -107,7 +111,7 @@ The `stl` function decomposes the time series object into its component parts. W
 Neuse_Decomposed <- stl(Neuse_ts, s.window = "periodic")
 
 # Visualize the decomposed series. 
-plot(Neuse_Decomposed)
+plot(Neuse_Decomposed) # bars on righthand side show difference in scale on different plot facets
 
 # We can extract the components and turn them into data frames
 Neuse_Components <- as.data.frame(Neuse_Decomposed$time.series[,1:3])
@@ -121,6 +125,7 @@ ggplot(Neuse_Components) +
   geom_line(aes(y = trend, x = Date), color = "#c13d75ff") +
   geom_hline(yintercept = 0, lty = 2) +
   labs(x = "", y = "Discharge (cfs)")
+# trend in plot above is always positive, but we might expect it to be negative as discharge trends up and down
 
 # Visualize how the seasonal cycle maps onto the data
 ggplot(Neuse_Components) +
@@ -175,7 +180,7 @@ NeuseCond_processed <- NeuseCond %>%
          Conductivity = ResultMeasureValue) %>%
   mutate(Year = year(Date),
          Month = month(Date),
-         Date_monthrounded = floor_date(Date, "month")) %>%
+         Date_monthrounded = floor_date(Date, "month")) %>% # rounds date down to nearest month
   arrange(Date)
 
 NeuseCond_monthly <- left_join(Months, NeuseCond_processed)
@@ -192,6 +197,23 @@ NeuseCond_monthly$Conductivity <- linearinterpolation$y
 3. Analyze the decomposed time series. Is there distinct seasonality? How does the magnitude of seasonality compare to the trend and random components of the time series? What are some caveats that need to be considered for the gap between October 2001 through February 2007?
 
 ```{r}
+#1
+cond.ts <- ts(NeuseCond_monthly[[3]], frequency = 12)
+#2
+cond.decomp <- stl(cond.ts, s.window = "periodic")
+#3
+plot(cond.decomp)
+
+cond.components <- as.data.frame(cond.decomp$time.series[,1:3])
+cond.components <- mutate(cond.components,
+                      Observed = NeuseCond_monthly$Conductivity,     
+                      Date = NeuseCond_monthly$Date)
+
+ggplot(cond.components) +
+  geom_line(aes(y = Observed, x = Date), color = "gray", size = 0.25) +
+  geom_line(aes(y = trend, x = Date), color = "#c13d75ff") +
+  geom_hline(yintercept = 0, lty = 2) +
+  labs(x = "", y = "Conductivity")
 
 ```
 
