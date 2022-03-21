@@ -55,6 +55,11 @@ This assignment will look at another measure of water quality - oxygen concentra
 
 ```{r}
 
+NewHope <- readWQPqw(siteNumbers = "USGS-02097314", parameterCd = "00300")
+
+NewHopeDO <- NewHope %>%
+  select(ActivityStartDate, ResultMeasureValue) %>%
+  rename("Date" = ActivityStartDate, "DO_mgl" = ResultMeasureValue)
 
 ```
 
@@ -62,12 +67,15 @@ This assignment will look at another measure of water quality - oxygen concentra
 
 ```{r}
 
-
+DO_plot <- ggplot(NewHopeDO, aes(x = Date, y = DO_mgl)) +
+  geom_point() +
+  geom_abline(slope = 0, intercept = 2, color = "blue")
+DO_plot
 ```
 
 4. What do you notice about the frequency of hypoxia over time?
 
-> 
+> There are several occurrences of hypoxia before 1990, and then none as DO seems to stabilize for the next 30 years.
 
 ## Nutrients
 
@@ -76,6 +84,9 @@ This assignment will look at another measure of water quality - oxygen concentra
 
 ```{r}
 
+NewHopeTP <- readWQPqw(siteNumbers = "USGS-02097314", parameterCd = "00665") %>%
+  select(ActivityStartDate, ResultMeasureValue) %>%
+  rename("Date" = ActivityStartDate, "TP_mgl" = ResultMeasureValue)
 
 ```
 
@@ -83,13 +94,18 @@ This assignment will look at another measure of water quality - oxygen concentra
 
 ```{r}
 
+TP_plot <- ggplot(NewHopeTP, aes(x = Date, y = TP_mgl)) + 
+  geom_point()
+TP_plot
+
+plot_grid(DO_plot, TP_plot, ncol = 1)
 
 
 ```
 
 7. What do these plots tell you about nutrient concentrations over time? How might nutrient concentrations relate to your previous plot of hypoxia events?
 
-> 
+> The plots indicate that there were very high concentrations of phosphorus before 1985, and then there is a large data gap from 1985-1997. Maybe monitoring regulations changed. Severely oscillating phosphorus concentrations correspond with the fluctuating dissolved oxygen levels - both occur in the pre-1990 timeframe.
 
 ## Discharge and Dissolved Oxygen
 
@@ -97,6 +113,9 @@ This assignment will look at another measure of water quality - oxygen concentra
 
 ```{r}
 
+NewHopeDischarge <- readNWISdv(siteNumbers = "02097314", parameterCd = "00060") %>%
+  select(Date, X_00060_00003) %>%
+  rename("Discharge" = X_00060_00003)
 
 ```
 
@@ -104,9 +123,16 @@ This assignment will look at another measure of water quality - oxygen concentra
 
 ```{r}
 
+Discharge_plot <- ggplot(filter(NewHopeDischarge, year(Date) >= 1983 & year(Date) <= 1984), aes(x = Date, y = Discharge)) +
+  geom_line()
+
+DO_filter_plot <- ggplot(filter(NewHopeDO, year(Date) == 1983 | year(Date) ==1984), aes(x = Date, y = DO_mgl)) +
+  geom_point()
+
+plot_grid(DO_filter_plot, Discharge_plot, ncol = 1)
 
 ```
 
 10. Do hypoxic events happen in the wet or the dry season? Why might that be?
 
-> 
+> Hypoxic events seem to occur in the dry season. This is because discharge is lower so there is less turbulence to mix oxygen into the water column and water is moving more slowly, absorbing less oxygen from the atmosphere.
