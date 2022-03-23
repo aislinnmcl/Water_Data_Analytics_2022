@@ -55,9 +55,9 @@ In general, detecting a monotonic trend requires a long sequence of data with fe
 
 Adjusting the data may be necessary to fulfill the assumptions of a trend test. These adjustments include **aggregation**, **subsampling**, and **interpolation**. What do each of these mean, and why might we want to use them?
 
-> aggregation: 
+> aggregation: taking a certain time step and taking data and taking central tendency, sum, more spaced out time step. good reason to aggregate is some ts analyses require that there is no temporal autocorrelation. e.g. you have daily data and want to get monthly data. you add up your daily data to get monthly data
 
-> subsampling: 
+> subsampling: a lot of approaches require you to subsample data so you can build a model with part of your data and then test on the rest of your data. e.g. you have daily data and want to get monthly data. you pick the daily data on the first day of each month to get monthly data.
 
 > interpolation: 
 
@@ -128,14 +128,18 @@ Let's visualize the seasonality of these two datasets. Add some editing to impro
 
 ```{r}
 Condplot <-
-ggplot(NeuseCond_monthly, aes(x = as.factor(Month), y = Conductivity)) +
-  geom_boxplot()
+ggplot(subset(NeuseCond_monthly, !is.na(Month)), aes(x = as.factor(Month), y = Conductivity)) +
+  geom_boxplot(outlier.shape = NA) + # have to remove outliers to use geom_jitter()
+  geom_jitter(alpha = 0.2)+
+  labs(x = "", y = expression("Conductivity (" *mu* "S/cm)")) 
+  #theme(axis.text.x = element_blank())
 
 Flowplot <-
 ggplot(NeuseFlow_monthly, aes(x = as.factor(Month), y = Discharge_acftmo)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(x = "Month", y = "Discharge (ac*ft/mo)")
 
-plot_grid(Condplot, Flowplot, ncol = 1)
+plot_grid(Condplot, Flowplot, ncol = 1, align = "v")
 ```
 
 
@@ -149,8 +153,8 @@ NeuseCond_timeseries <- ts(NeuseCond_monthly$Conductivity, frequency = 12,
 NeuseCond_trend <- smk.test(NeuseCond_timeseries)
 
 # Inspect results
-NeuseCond_trend
-summary(NeuseCond_trend)
+NeuseCond_trend # positive z score tells you spacing betweeen points is in positive direction over time, p-value tells you how likely that outcome was. the larger your z score (-ve or +ve), the lower your pvalue will be. S calculates sum of differences over time.
+summary(NeuseCond_trend) #asterisks show significance
 
 ```
 
@@ -167,11 +171,16 @@ NeuseFlow_timeseries <- ts(NeuseFlow_monthly$Discharge_acftmo, frequency = 12,
                            start = c(1976, 1, 1), end = c(2021, 12, 1))
 
 
+NeuseFlow_trend <- smk.test(NeuseFlow_timeseries)
+
+NeuseFlow_trend
+summary(NeuseFlow_trend)
+
 ```
 
 What would we conclude based on these findings? 
 
->
+> We have seen a monotonic increase in discharge over time (positive z score) but not that strong. Wouldn't directly compare s scores between discharge and conductivity but can compare z scores. Z score is just asking "is there a trend" S score is telling you how strong the trend is and the directionality. Seasonality is comparing within months (so each January compared to each January). positive trend in discharge over time is restricted to late summer months.
  
 ## Autoregressive and Moving Average Models (ARMA)
 
@@ -188,6 +197,7 @@ ARMA models require stationary data. This means that there is no monotonic trend
 ```{r}
 
 adf.test(NeuseFlow_timeseries, alternative = "stationary")
+#p value 0.01 is not significant so data are stationary over time
 
 ```
 
@@ -195,8 +205,8 @@ Let's inspect the ACF and PACF plots. Notice the ACF plot has repeating positive
 
 ```{r}
 
-acf(NeuseFlow_timeseries)
-pacf(NeuseFlow_timeseries)
+acf(NeuseFlow_timeseries) # autocorrelation decays over time, and we're seeing some interesting seasonality with acf plot going from positive to negative
+pacf(NeuseFlow_timeseries) # decays a lot faster and not much seasonality
 
 ```
 
