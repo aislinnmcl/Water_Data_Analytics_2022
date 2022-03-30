@@ -64,9 +64,9 @@ theme_set(theme_classic())
 options(scipen = 4)
 
 # Load LAGOSNE data into R session
-LAGOSdata <- lagosne_load()
+#LAGOSdata <- lagosne_load()
 # If the lagosne_get function has not worked, use this code: 
-# load(file = "./Data/Raw/LAGOSdata.rda")
+load(file = "./Data/Raw/LAGOSdata.rda")
 
 
 ```
@@ -142,7 +142,7 @@ ggplot() +
   geom_sf(data = states.subset, fill = "white") +
   geom_sf(data = secchi.spatial, aes(color = secchi.mean), 
           alpha = 0.5, size = 1) +
-  scale_color_viridis_c(trans = "log10", end = 0.8) +
+  scale_color_viridis_c(trans = "log10", end = 0.8, direction = -1) +
   labs(color = "Average Secchi Depth (m)") +
   theme(legend.position = "top")
 
@@ -155,11 +155,24 @@ Your turn! Notice that Maine has a large number of lakes with secchi depth measu
 
 ```{r}
 
+maine <- LAGOScombined %>%
+  filter(state == "ME") %>%
+  group_by(lagoslakeid, nhd_lat, nhd_long, lake_area_ha, maxdepth) %>%
+  summarise(secchi.mean = mean(secchi)) %>%
+  drop_na()
+
+maine_sf <- st_as_sf(maine, coords = c("nhd_long", "nhd_lat"), crs = 4326)
+
 ```
 
 2. Create a plot of mean secchi depth for lakes in Maine, with mean secchi depth designated as color and the lake area as the size of the dot. Remember that you are using size in the aesthetics and should remove the size = 1 from the other part of the code. Adjust the transparency of points as needed.
 
 ```{r}
+
+ggplot() +
+  geom_sf(data = filter(states, ID == "maine")) +
+  geom_sf(data = maine_sf, aes(color = secchi.mean, size = lake_area_ha))
+
 
 ```
 
@@ -167,6 +180,27 @@ Your turn! Notice that Maine has a large number of lakes with secchi depth measu
 
 ```{r}
 
+plot <- ggplot() +
+  geom_sf(data = filter(states, ID == "maine")) +
+  geom_sf(data = maine_sf, aes(size = maxdepth))
+plot
+
+plot2 <- ggplot() +
+  geom_sf(data = filter(states, ID == "maine")) +
+  geom_sf(data = maine_sf, aes(color = secchi.mean))
+plot2
+
+plot3 <- ggplot() +
+  geom_sf(data = filter(states, ID == "maine")) +
+  geom_sf(data = maine_sf, aes(size = maxdepth, color = secchi.mean))
+plot3
+
+legend <- get_legend(plot)
+legend2 <- get_legend(plot2)
+
+object <- plot_grid(plot3 + theme(legend.position = "none"), legend, legend2, ncol = 3)
+
+object
 ```
 
 4. Plot these maps in the same plot with the `plot_grid` function. Don't worry about adjusting the legends (if you have extra time this would be a good bonus task).
