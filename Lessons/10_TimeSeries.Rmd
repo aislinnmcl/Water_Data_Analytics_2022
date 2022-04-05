@@ -197,7 +197,7 @@ ARMA models require stationary data. This means that there is no monotonic trend
 ```{r}
 
 adf.test(NeuseFlow_timeseries, alternative = "stationary")
-#p value 0.01 is not significant so data are stationary over time
+#p value 0.01 is < .05 and is significant so data are stationary over time
 
 ```
 
