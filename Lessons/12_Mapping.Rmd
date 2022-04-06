@@ -50,7 +50,7 @@ Let's delineate the upstream watershed for the sampling and gage site: Neuse Riv
 
 ```{r}
 # Recall there are a lot of parameters measured at the site
-NeuseParams <- whatNWISdata(siteNumbers = "02089500")
+NeuseParams <- whatNWISdata(siteNumbers = "02085070")
 
 # Extract latitude and longitude for the site
 NeuseCoords <- NeuseParams %>%
@@ -144,5 +144,7 @@ ggplot(subset(flowline, slope >= 0),
   scale_y_log10()
   
 max(flowline$totdasqkm)
+
+max(flowline$streamorde)
 
 ```
